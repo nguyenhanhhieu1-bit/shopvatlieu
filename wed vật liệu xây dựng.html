@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Shop Vật Liệu Xây Dựng</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f4f4f4;
+}
+
+/* HEADER */
+header{
+  background:#ff5722;
+  color:#fff;
+  padding:18px 25px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:20px;
+}
+
+.cart{
+  position:relative;
+  font-size:32px;
+  cursor:pointer;
+}
+
+.badge{
+  position:absolute;
+  top:-10px;
+  right:-12px;
+  background:red;
+  color:#fff;
+  font-size:14px;
+  padding:3px 8px;
+  border-radius:50%;
+}
+
+/* PRODUCT */
+.container{
+  padding:20px;
+}
+
+.product{
+  background:#fff;
+  padding:12px;
+  width:260px;
+  border-radius:14px;
+  display:inline-block;
+}
+
+/* HÌNH SẢN PHẨM */
+.img-list{
+  display:flex;
+  gap:10px;
+}
+
+.img-list img{
+  width:120px;
+  height:auto;
+  object-fit:cover;
+  background:transparent;
+  border-radius:10px;
+  cursor:pointer;
+  border:1px solid #ddd;
+}
+
+.price{
+  color:red;
+  font-weight:bold;
+  font-size:18px;
+}
+
+button{
+  background:#4caf50;
+  color:#fff;
+  border:none;
+  padding:10px 12px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:16px;
+}
+
+/* POPUP */
+.popup,.cartBox,.imgView{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.85);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+
+.box{
+  background:#fff;
+  padding:20px;
+  width:440px;
+  border-radius:14px;
+}
+
+.item{
+  border-bottom:1px solid #ddd;
+  padding:10px 0;
+}
+
+.item-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.date{
+  font-size:13px;
+  color:#555;
+}
+
+.remove{
+  background:#e53935;
+  padding:6px 10px;
+  font-size:14px;
+}
+
+.total{
+  color:red;
+  font-weight:bold;
+  font-size:18px;
+}
+
+/* PHÓNG TO ẢNH */
+.imgBox{
+  background:#fff;
+  padding:10px;
+  border-radius:16px;
+  transform:scale(0.3);
+  transition:.3s ease;
+}
+
+.imgView.show .imgBox{
+  transform:scale(1.05);
+}
+
+.imgBox img{
+  max-width:90vw;
+  max-height:90vh;
+  object-fit:contain;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  🏗️ VẬT LIỆU XÂY DỰNG
+  <div class="cart" onclick="openCart()">🛒
+    <span class="badge" id="cartCount">0</span>
+  </div>
+</header>
+
+<div class="container">
+  <div class="product">
+
+    <div class="img-list">
+      <img src="img1.jpg" onclick="openImg(this.src)">
+      <img src="img2.jpg" onclick="openImg(this.src)">
+    </div>
+
+    <h3>Vôi nước quét tường Thống Nhất</h3>
+    <div class="price">18.000đ / 1 thùng</div>
+    <br>
+    <button onclick="openPopup()">Mua ngay</button>
+
+  </div>
+</div>
+
+<!-- POPUP -->
+<div class="popup" id="popup">
+  <div class="box">
+    <h3>Vôi nước Thống Nhất</h3>
+    <p style="color:green">✔ Trả hàng miễn phí 15 ngày</p>
+
+    <button onclick="changeQty(-1)">-</button>
+    <span id="qty" style="margin:0 10px">1</span>
+    <button onclick="changeQty(1)">+</button>
+    <br><br>
+
+    <button onclick="buy()">Mua</button>
+    <button onclick="closePopup()" style="background:#999">Huỷ</button>
+  </div>
+</div>
+
+<!-- GIỎ HÀNG -->
+<div class="cartBox" id="cartBox">
+  <div class="box">
+    <h3>🛒 Giỏ hàng</h3>
+    <div id="cartList"></div>
+    <p>Tổng tiền: <span class="total" id="totalMoney">0đ</span></p>
+    <button onclick="closeCart()" style="background:#999">Đóng</button>
+  </div>
+</div>
+
+<!-- PHÓNG TO ẢNH -->
+<div class="imgView" id="imgView" onclick="closeImg()">
+  <div class="imgBox">
+    <img id="bigImg">
+  </div>
+</div>
+
+<script>
+const price = 18000;
+let qty = 1;
+let cartItems = [];
+
+const popup = document.getElementById("popup");
+const cartBox = document.getElementById("cartBox");
+const cartList = document.getElementById("cartList");
+const cartCount = document.getElementById("cartCount");
+const totalMoney = document.getElementById("totalMoney");
+const qtyEl = document.getElementById("qty");
+const imgView = document.getElementById("imgView");
+
+function openPopup(){
+  popup.style.display="flex";
+  qty=1;
+  qtyEl.innerText=qty;
+}
+
+function closePopup(){
+  popup.style.display="none";
+}
+
+function changeQty(n){
+  qty=Math.max(1,qty+n);
+  qtyEl.innerText=qty;
+}
+
+function buy(){
+  const now = new Date();
+  const dateStr = now.toLocaleString("vi-VN");
+  cartItems.push({
+    qty: qty,
+    price: price,
+    date: dateStr
+  });
+  updateCart();
+  closePopup();
+}
+
+function openCart(){
+  renderCart();
+  cartBox.style.display="flex";
+}
+
+function closeCart(){
+  cartBox.style.display="none";
+}
+
+function updateCart(){
+  cartCount.innerText = cartItems.reduce((t,i)=>t+i.qty,0);
+}
+
+function renderCart(){
+  cartList.innerHTML="";
+  let total=0;
+
+  cartItems.forEach((i,index)=>{
+    let money=i.qty*i.price;
+    total+=money;
+    cartList.innerHTML+=`
+      <div class="item">
+        <div class="item-row">
+          <strong>${i.qty} x ${i.price.toLocaleString()}đ</strong>
+          <button class="remove" onclick="removeItem(${index})">Huỷ</button>
+        </div>
+        <div class="date">📅 Ngày đặt: ${i.date}</div>
+      </div>
+    `;
+  });
+
+  totalMoney.innerText=total.toLocaleString()+"đ";
+}
+
+function removeItem(i){
+  cartItems.splice(i,1);
+  updateCart();
+  renderCart();
+}
+
+function openImg(src){
+  document.getElementById("bigImg").src=src;
+  imgView.style.display="flex";
+  setTimeout(()=>imgView.classList.add("show"),10);
+}
+
+function closeImg(){
+  imgView.classList.remove("show");
+  setTimeout(()=>imgView.style.display="none",250);
+}
+</script>
+
+</body>
+</html>
